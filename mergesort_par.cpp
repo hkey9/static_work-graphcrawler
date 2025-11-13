@@ -30,19 +30,23 @@ void checkMergeSortResult(const std::vector<int>& arr, size_t n) {
 }
 
 void merge_ranges(int* arr, size_t l, size_t mid, size_t r, int* temp) {
-  // merge [l,mid) and [mid,r) into arr[l,r)
-  size_t left_n = mid - l;
-  for (size_t i = 0; i < left_n; ++i) temp[i] = arr[l + i];
+    size_t left_n = mid - l;  // left half = [l, mid-1]
+    for (size_t i = 0; i < left_n; ++i)
+        temp[i] = arr[l + i];
 
-  size_t i = 0;        // index in temp (left)
-  size_t j = mid;      // index in right half (arr)
-  size_t k = l;        // write index
+    size_t i = 0;       // index into temp (left half)
+    size_t j = mid;     // index into right half
+    size_t k = l;       // index into merged array
 
-  while (i < left_n && j < r) {
-    if (temp[i] <= arr[j]) arr[k++] = temp[i++];
-    else arr[k++] = arr[j++];
-  }
-  while (i < left_n) arr[k++] = temp[i++];
+    while (i < left_n && j < r) {
+        if (temp[i] <= arr[j])
+            arr[k++] = temp[i++];
+        else
+            arr[k++] = arr[j++];
+    }
+
+    while (i < left_n)
+        arr[k++] = temp[i++];
 }
 
 void mergesort_seq(int* arr, size_t l, size_t r, int* temp) {
@@ -108,3 +112,4 @@ int main(int argc, char* argv[]) {
   std::cerr << elapsed.count() << std::endl;
 
   /
+
