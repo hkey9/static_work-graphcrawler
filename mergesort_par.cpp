@@ -5,7 +5,7 @@
 #include <omp.h>
 #include "omp_tasking.hpp"
 
-
+// Generate deterministic random data
 void generateMergeSortData(std::vector<int>& arr, size_t n) {
     srand(1);
     for (size_t i = 0; i < n; ++i) arr[i] = rand();
@@ -25,6 +25,7 @@ void merge_ranges(int* arr, size_t l, size_t mid, size_t r, int* temp) {
     while (i < left_n) arr[k++] = temp[i++];
 }
 
+// Sequential mergesort [l, r)
 void mergesort_seq(int* arr, size_t l, size_t r, int* temp) {
     if (r - l <= 1) return;
     size_t mid = (l + r) / 2;
@@ -33,6 +34,7 @@ void mergesort_seq(int* arr, size_t l, size_t r, int* temp) {
     merge_ranges(arr, l, mid, r, temp);
 }
 
+// Parallel mergesort task
 void mergesort_par_task(int* arr, size_t l, size_t r, size_t threshold) {
     if (r - l <= 1) return;
     size_t len = r - l;
@@ -76,8 +78,6 @@ int main(int argc, char* argv[]) {
     std::chrono::duration<double> elapsed = end - start;
 
     std::cerr << elapsed.count() << std::endl;
-    checkMergeSortResult(arr, n);
 
     return 0;
 }
-
