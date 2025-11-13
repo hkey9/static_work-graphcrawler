@@ -30,23 +30,16 @@ void checkMergeSortResult(const std::vector<int>& arr, size_t n) {
 }
 
 void merge_ranges(int* arr, size_t l, size_t mid, size_t r, int* temp) {
-    size_t left_n = mid - l;  // left half = [l, mid-1]
+    size_t left_n = mid - l;  // left = [l, mid)
     for (size_t i = 0; i < left_n; ++i)
         temp[i] = arr[l + i];
 
-    size_t i = 0;       // index into temp (left half)
-    size_t j = mid;     // index into right half
-    size_t k = l;       // index into merged array
-
+    size_t i = 0, j = mid, k = l;
     while (i < left_n && j < r) {
-        if (temp[i] <= arr[j])
-            arr[k++] = temp[i++];
-        else
-            arr[k++] = arr[j++];
+        if (temp[i] <= arr[j]) arr[k++] = temp[i++];
+        else arr[k++] = arr[j++];
     }
-
-    while (i < left_n)
-        arr[k++] = temp[i++];
+    while (i < left_n) arr[k++] = temp[i++];
 }
 
 void mergesort_seq(int* arr, size_t l, size_t r, int* temp) {
@@ -59,31 +52,23 @@ void mergesort_seq(int* arr, size_t l, size_t r, int* temp) {
 }
 
 void mergesort_par_task(int* arr, size_t l, size_t r, size_t threshold) {
-  if (r - l <= 1) return;
-  size_t len = r - l;
-  if (len <= threshold) {
-    std::vector<int> temp_local(len);
-    mergesort_seq(arr, l, r, temp_local.data());
-    return;
-  }
+    if (r - l <= 1) return;
+    size_t len = r - l;
+    if (len <= threshold) {
+        std::vector<int> temp_local(len);
+        mergesort_seq(arr, l, r, temp_local.data());
+        return;
+    }
 
-  size_t mid = (l + r) / 2;
+    size_t mid = (l + r) / 2;
 
-  // left task
-  omp_tasking::taskstart([=, &arr]() {
-    mergesort_par_task(arr, l, mid, threshold);
-  });
+    omp_tasking::taskstart([=, &arr]() { mergesort_par_task(arr, l, mid, threshold); });
+    omp_tasking::taskstart([=, &arr]() { mergesort_par_task(arr, mid, r, threshold); });
 
-  // right task
-  omp_tasking::taskstart([=, &arr]() {
-    mergesort_par_task(arr, mid, r, threshold);
-  });
+    omp_tasking::taskwait();
 
-  omp_tasking::taskwait();
-
-  // merge using local temp for left half
-  std::vector<int> temp_local(mid - l);
-  merge_ranges(arr, l, mid, r, temp_local.data());
+    std::vector<int> temp_local(mid - l);
+    merge_ranges(arr, l, mid, r, temp_local.data());
 }
 
 int main(int argc, char* argv[]) {
@@ -112,4 +97,5 @@ int main(int argc, char* argv[]) {
   std::cerr << elapsed.count() << std::endl;
 
   /
+
 
