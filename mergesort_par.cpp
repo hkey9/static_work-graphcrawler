@@ -5,7 +5,7 @@
 #include <omp.h>
 #include "omp_tasking.hpp"
 
-// Generate deterministic random data
+// Generate random data
 void generateMergeSortData(std::vector<int>& arr, size_t n) {
     srand(1);
     for (size_t i = 0; i < n; ++i) arr[i] = rand();
