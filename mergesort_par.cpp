@@ -18,7 +18,8 @@ void checkMergeSortResult(const std::vector<int>& arr, size_t n) {
 
 void merge_ranges(int* arr, size_t l, size_t mid, size_t r, int* temp) {
   size_t left_n = mid - l + 1;
-  for (size_t i = 0; i < left_n; ++i) temp[i] = arr[l + i];
+  for (size_t i = 0; i < left_n; ++i)
+    temp[i] = arr[l + i];
 
   size_t i = 0;
   size_t j = mid + 1;
@@ -49,16 +50,21 @@ void mergesort_par_task(int* arr, size_t l, size_t r, int* temp, size_t threshol
 
   size_t mid = (l + r) / 2;
 
-  omp_tasking::taskstart([=, &arr, &temp, &threshold]() {
-    mergesort_par_task(arr, l, mid, temp, threshold);
+  omp_tasking::taskstart([=, &arr, &threshold]() {
+    std::vector<int> temp_left(mid - l + 1);
+    mergesort_par_task(arr, l, mid, temp_left.data(), threshold);
   });
-  omp_tasking::taskstart([=, &arr, &temp, &threshold]() {
-    mergesort_par_task(arr, mid + 1, r, temp, threshold);
+
+  omp_tasking::taskstart([=, &arr, &threshold]() {
+    std::vector<int> temp_right(r - mid);
+    mergesort_par_task(arr, mid + 1, r, temp_right.data(), threshold);
   });
 
   omp_tasking::taskwait();
 
-  merge_ranges(arr, l, mid, r, temp);
+  // Use a local temp for merging
+  std::vector<int> temp_local(mid - l + 1);
+  merge_ranges(arr, l, mid, r, temp_local.data());
 }
 
 int main(int argc, char* argv[]) {
@@ -79,7 +85,7 @@ int main(int argc, char* argv[]) {
   auto start = std::chrono::high_resolution_clock::now();
 
   omp_tasking::doinparallel(threads, [&]() {
-    mergesort_par_task(&(arr[0]), 0, (n == 0 ? 0 : n - 1), &(temp[0]), threshold);
+    mergesort_par_task(arr.data(), 0, (n == 0 ? 0 : n - 1), temp.data(), threshold);
   });
 
   auto end = std::chrono::high_resolution_clock::now();
